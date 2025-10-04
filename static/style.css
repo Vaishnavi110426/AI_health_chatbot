@@ -1,0 +1,75 @@
+:root{
+  --bg: #f2f6fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent: #16a085;
+  --bubble-user: #16a085;
+  --bubble-bot: #e8f9f1;
+}
+:root.dark{
+  --bg: #0b1116;
+  --card: #071016;
+  --muted: #9aa6b2;
+  --accent: #49c6a9;
+  --bubble-user: #0f766e;
+  --bubble-bot: #0b1a1a;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif}
+body{background: linear-gradient(180deg,#bfe9ff 0%, #f6fcff 100%);min-height:100vh;color:#0f172a}
+:root.dark body{background: linear-gradient(180deg,#04121a 0%, #051826 100%);color:#e6eef6}
+
+.app{display:flex;max-width:1100px;margin:28px auto;height:80vh;border-radius:12px;overflow:hidden;box-shadow:0 12px 40px rgba(2,6,23,0.12)}
+.sidebar{width:260px;background:var(--card);padding:18px;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{font-size:28px;background:linear-gradient(90deg,var(--accent),#1abc9c);color:white;padding:10px;border-radius:10px}
+.brand h2{font-size:1.1rem}
+.muted{color:var(--muted);font-size:0.85rem}
+.controls{display:flex;gap:8px;align-items:center;padding-top:6px}
+.btn{background:transparent;border:1px solid #ddd;padding:8px 10px;border-radius:8px;cursor:pointer}
+.btn.small{font-size:0.85rem;padding:6px 8px}
+.btn.primary{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+.sidebar .about{font-size:0.9rem;color:var(--muted);padding-top:8px}
+.sidebar-foot{margin-top:auto;font-size:0.8rem;color:var(--muted)}
+
+/* Main */
+.main{flex:1;background:var(--card);display:flex;flex-direction:column}
+.main-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #eee}
+.title h3{margin-bottom:4px}
+.chat-area{flex:1;padding:18px;overflow:auto;background:linear-gradient(180deg, rgba(250,252,255,0.6), rgba(240,248,255,0.6))}
+:root.dark .chat-area{background:transparent}
+
+/* message rows */
+.message-row{display:flex;gap:12px;margin-bottom:14px;align-items:flex-end}
+.user-message{justify-content:flex-end}
+.bot-message{justify-content:flex-start}
+.avatar{width:42px;height:42px;border-radius:10px;background:linear-gradient(180deg,#fff,#f6f9ff);display:flex;align-items:center;justify-content:center;font-size:20px}
+.message{max-width:78%;display:flex;flex-direction:column;gap:6px}
+.bubble{padding:12px 14px;border-radius:12px;font-size:0.95rem;line-height:1.4}
+.user-message .bubble{background:var(--bubble-user);color:white;border-bottom-right-radius:4px}
+.bot-message .bubble{background:var(--bubble-bot);color:var(--muted);border-bottom-left-radius:4px}
+.meta{font-size:0.75rem;color:var(--muted);align-self:flex-end}
+.copy-btn{margin-top:6px;border:1px solid #ddd;background:transparent;padding:6px;border-radius:8px;cursor:pointer}
+
+/* typing indicator */
+.typing{display:flex;justify-content:center;padding:8px}
+.typing.hidden{display:none}
+.typing .dot{width:8px;height:8px;background:#9aa6b2;border-radius:50%;margin:0 5px;animation:blink 1.4s infinite}
+@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+
+/* composer */
+.composer{display:flex;gap:8px;padding:14px;border-top:1px solid #eee;align-items:center}
+.icon-btn{background:transparent;border:1px solid #ddd;padding:10px;border-radius:10px;cursor:pointer;font-size:18px}
+.composer input{flex:1;padding:12px;border-radius:10px;border:1px solid #ddd;font-size:0.95rem;outline:none}
+.btn.primary{min-width:92px}
+
+/* small helpers */
+.small{font-size:0.85rem}
+.muted{color:var(--muted)}
+
+/* responsive */
+@media (max-width:880px){
+  .app{flex-direction:column;height:92vh}
+  .sidebar{width:100%;display:flex;flex-direction:row;align-items:center;gap:16px;padding:12px;overflow:auto}
+  .main{flex:1}
+}

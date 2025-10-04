@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EvioranAI — Health Awareness Chatbot</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">🩺</div>
+        <div>
+          <h2>EvioranAI</h2>
+          <p>Health Awareness Assistant</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="reset-btn" class="btn small">New Conversation</button>
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle">
+          <span class="slider"></span>
+        </label>
+        <span class="small muted">Dark</span>
+      </div>
+
+      <div class="about">
+        <h4>How to use</h4>
+        <ul>
+          <li>Ask about symptoms, prevention, or when to seek care.</li>
+          <li>Use the mic for speech input (browser-supported).</li>
+          <li>Bot replies are educational — not medical diagnoses.</li>
+        </ul>
+      </div>
+
+      <footer class="sidebar-foot">
+        <small>Powered by Hugging Face • Demo</small>
+      </footer>
+    </aside>
+
+    <main class="main">
+      <header class="main-header">
+        <div class="title">
+          <h3>🩺 EvioranAI</h3>
+          <p class="muted">Ask about diseases, prevention, and safety tips.</p>
+        </div>
+        <div class="header-actions">
+          <button id="copy-last" class="btn small">Copy Last Reply</button>
+        </div>
+      </header>
+
+      <section id="chat-area" class="chat-area" aria-live="polite">
+        <!-- Initial bot greeting -->
+        <div class="bot-message">
+          <div class="avatar">🤖</div>
+          <div class="message">
+            <div class="bubble">Hello! I'm EvioranAI — ask me about disease prevention, symptoms, and safety tips. I do not provide medical diagnoses.</div>
+            <div class="meta">Now</div>
+          </div>
+        </div>
+      </section>
+
+      <div id="typing-indicator" class="typing hidden">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+
+      <form id="chat-form" class="composer" autocomplete="off">
+        <button type="button" id="mic-btn" class="icon-btn" title="Speak">
+          🎙️
+        </button>
+        <input id="user-input" name="message" placeholder="Ask about dengue prevention, symptoms, etc..." />
+        <button type="submit" id="send-btn" class="btn primary">Send</button>
+      </form>
+    </main>
+  </div>
+
+<script>
+/* ========== Helpers ========== */
+const chatArea = document.getElementById('chat-area');
+const form = document.getElementById('chat-form');
+const userInput = document.getElementById('user-input');
+const typing = document.getElementById('typing-indicator');
+const resetBtn = document.getElementById('reset-btn');
+const themeToggle = document.getElementById('theme-toggle');
+const copyLastBtn = document.getElementById('copy-last');
+const micBtn = document.getElementById('mic-btn');
+
+function appendMessage(sender, text, opts = {}) {
+  const wrapper = document.createElement('div');
+  wrapper.className = sender + '-message message-row';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.innerText = sender === 'user' ? '🧑' : '🤖';
+
+  const msg = document.createElement('div');
+  msg.className = 'message';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerText = text;
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const now = new Date();
+  meta.innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  msg.appendChild(bubble);
+  msg.appendChild(meta);
+
+  // add copy button for each bot message
+  if (sender === 'bot') {
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn small';
+    copyBtn.innerText = 'Copy';
+    copyBtn.onclick = () => navigator.clipboard.writeText(text);
+    msg.appendChild(copyBtn);
+  }
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(msg);
+  chatArea.appendChild(wrapper);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return wrapper;
+}
+
+/* ========== Chat flow ========== */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const text = userInput.value.trim();
+  if (!text) return;
+  appendMessage('user', text);
+  userInput.value = '';
+  typing.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({message: text})
+    });
+    const data = await res.json();
+    typing.classList.add('hidden');
+
+    if (data.error) {
+      appendMessage('bot', '⚠️ Error: ' + data.error);
+      return;
+    }
+    appendMessage('bot', data.reply);
+    // Speak bot reply
+    speakText(data.reply);
+  } catch (err) {
+    typing.classList.add('hidden');
+    appendMessage('bot', '⚠️ Network or server error. Try again.');
+  }
+});
+
+/* ========== Reset convo ========== */
+resetBtn.addEventListener('click', async () => {
+  await fetch('/reset', {method: 'POST'});
+  chatArea.innerHTML = '';
+  appendMessage('bot', "Conversation reset. Hi — I'm SwasthAI. How can I help?");
+});
+
+/* ========== Copy last reply ========== */
+copyLastBtn.addEventListener('click', () => {
+  // Find last bot bubble
+  const botMsgs = Array.from(document.querySelectorAll('.bot-message .bubble, .bot-message .message .bubble'));
+  let last = null;
+  const botBubbles = document.querySelectorAll('.bot-message .bubble, .message-row .bot-message .bubble');
+  // Simpler: find last .bubble where parent row has class 'bot-message'
+  const rows = Array.from(document.querySelectorAll('.message-row'));
+  for (let i = rows.length - 1; i >= 0; --i) {
+    if (rows[i].classList.contains('bot-message')) {
+      const b = rows[i].querySelector('.bubble');
+      if (b) {
+        navigator.clipboard.writeText(b.innerText);
+        alert('Copied last bot reply to clipboard');
+        return;
+      }
+    }
+  }
+  alert('No bot reply found yet.');
+});
+
+/* ========== Dark mode toggle ========== */
+themeToggle.addEventListener('change', (e) => {
+  document.documentElement.classList.toggle('dark', e.target.checked);
+});
+
+/* ========== Text-to-Speech ========== */
+function speakText(text) {
+  if (!('speechSynthesis' in window)) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1;
+  utter.pitch = 1;
+  // prefer Indian English if available
+  const voices = speechSynthesis.getVoices();
+  const enVoice = voices.find(v => /india|english/i.test(v.lang) || /en-GB|en-IN/.test(v.lang));
+  if (enVoice) utter.voice = enVoice;
+  speechSynthesis.cancel(); // stop previous
+  speechSynthesis.speak(utter);
+}
+
+/* ========== Mic / Speech-to-Text (Web Speech API) ========== */
+let recognition;
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = (e) => {
+    const spoken = e.results[0][0].transcript;
+    userInput.value = spoken;
+    // Auto submit
+    form.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+  };
+  recognition.onerror = (e) => {
+    console.error('Speech recognition error', e);
+  };
+} else {
+  micBtn.style.display = 'none';
+}
+
+micBtn.addEventListener('click', () => {
+  if (!recognition) return alert('Speech Recognition not supported in this browser');
+  recognition.start();
+});
+
+/* ========== Typing indicator control (small UX improvement) ========== */
+document.addEventListener('click', () => {
+  userInput.focus();
+});
+</script>
+</body>
+</html>
