@@ -69,13 +69,35 @@ screenshots:
 <img width="1920" height="1020" alt="Screenshot 2025-10-05 032127" src="https://github.com/user-attachments/assets/a1f60333-d661-40d0-b021-4e21f9275ff4" />
 
 
-🔧 Notes
+⚠️ Project Status – Evioran AI
 
-The chatbot uses GPT-2 for offline, public demo purposes.
+Frontend:
 
-For production or advanced AI capabilities, a more powerful Hugging Face model or OpenAI GPT-3.5/4 can be integrated.
+Fully complete and polished.
 
-The project is hackathon-ready and requires minimal setup.
+Includes chat UI with multi-turn conversation, chat bubbles, reset button, and styling.
+
+Ready for presentation/demo.
+
+Backend:
+
+Uses GPT-2 local via Hugging Face Transformers (pipeline("text-generation", model="gpt2")).
+
+Functional for hackathon demos but basic AI responses only.
+
+Needs further support for:
+
+Smarter disease-specific answers
+
+More advanced NLP capabilities
+
+Handling higher traffic or multiple users simultaneously
+
+Hackathon-ready demo:
+
+Frontend can be fully demonstrated.
+
+Backend AI works reliably with GPT-2; no API keys or quotas required.
 
 📢 License
 
